@@ -19,6 +19,12 @@ import com.google.gson.reflect.TypeToken
 import com.squareup.picasso.Picasso
 import org.json.JSONArray
 import org.json.JSONObject
+import android.widget.Toast
+import androidx.core.app.ComponentActivity.ExtraData
+import androidx.core.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+
+
 
 const val MOVIE_OBJECT_ID = "tokenlab.com.MOVIE_OBJECT_ID"
 const val MOVIE_OBJECT_VOTES = "tokenlab.com.MOVIE_OBJECT_VOTES"
@@ -87,8 +93,12 @@ class MainActivity : AppCompatActivity() {
 
         }, Response.ErrorListener { error ->
             error.printStackTrace()
+            val errorToast = Toast.makeText(this, "Connection failed! Please try again", Toast.LENGTH_SHORT)
+            errorToast.show()
+            progDailog.dismiss()
         })
         mQueue.add(request)
+
     }
 
     fun showMore(view: View) {
