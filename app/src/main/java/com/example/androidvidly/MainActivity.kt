@@ -59,14 +59,14 @@ class MainActivity : AppCompatActivity() {
                 if (i==0) {
                     var mImageView = findViewById<ImageView>(R.id.imageDisplay)
                     mImageView.setTag(movieObject)
-                    loadImageFromUrl(movieObject.poster_url, mImageView)
                     mImageView.setPadding(0, 0, 0, 0);
+                    loadImageFromUrl(movieObject.poster_url, mImageView)
                 }
                 else if (i==1) {
                     var mImageView = findViewById<ImageView>(R.id.imageDisplay2)
                     mImageView.setTag(movieObject)
-                    loadImageFromUrl(movieObject.poster_url, mImageView)
                     mImageView.setPadding(0, 0, 0, 0);
+                    loadImageFromUrl(movieObject.poster_url, mImageView)
                 }
                 else{
                     if(i.rem(2)==0) {
@@ -75,16 +75,16 @@ class MainActivity : AppCompatActivity() {
                         mImageView.setTag(movieObject)
                         var height = gallery.height
                         view.minimumHeight=height
-                        gallery.addView(view)
-                        loadImageFromUrl(movieObject.poster_url, mImageView)
                         mImageView.setPadding(0, 0, 0, 0);
+                        loadImageFromUrl(movieObject.poster_url, mImageView)
+                        gallery.addView(view)
                     }
                     else {
                         var view = gallery.getChildAt(gallery.childCount-1)
                         var mImageView = view.findViewById<ImageView>(R.id.imageDisplay2)
                         mImageView.setTag(movieObject)
-                        loadImageFromUrl(movieObject.poster_url, mImageView)
                         mImageView.setPadding(0, 0, 0, 0);
+                        loadImageFromUrl(movieObject.poster_url, mImageView)
                     }
                 }
 
@@ -121,4 +121,3 @@ class MainActivity : AppCompatActivity() {
             )
     }
 }
-
