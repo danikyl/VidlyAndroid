@@ -1,5 +1,6 @@
 package com.example.androidvidly
 
+import android.app.ProgressDialog
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
         var mAppName = findViewById<TextView>(R.id.appName)
         mAppName.text="Vidly"
         val gson = Gson()
+        var progDailog = ProgressDialog.show( this,"Process ", "Loading Data...",true,true);
         var request = StringRequest(Request.Method.GET, url, Response.Listener { response ->
             var moviesJSONArray = JSONArray(response)
             for (i in 0 until moviesJSONArray.length()) {
@@ -81,6 +83,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
             }
+            progDailog.dismiss()
 
         }, Response.ErrorListener { error ->
             error.printStackTrace()
