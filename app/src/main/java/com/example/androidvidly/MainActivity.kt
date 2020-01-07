@@ -38,7 +38,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         val mQueue = Volley.newRequestQueue(this)
         val url = "https://desafio-mobile.nyc3.digitaloceanspaces.com/movies" //API provided
         //val url = "http://10.0.2.2:3000"// Node.js Backend
@@ -96,6 +95,7 @@ class MainActivity : AppCompatActivity() {
             val errorToast = Toast.makeText(this, "Connection failed! Please try again", Toast.LENGTH_SHORT)
             errorToast.show()
             progDailog.dismiss()
+            connectionFailed()
         })
         mQueue.add(request)
 
@@ -119,5 +119,9 @@ class MainActivity : AppCompatActivity() {
             .into(
                 mImageView, null
             )
+    }
+    fun connectionFailed() {
+        val intent = Intent(this, ConnectionFailed::class.java)
+        startActivity(intent)
     }
 }

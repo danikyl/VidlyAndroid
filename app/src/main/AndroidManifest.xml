@@ -13,7 +13,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".MovieSelectedActivity"></activity>
+        <activity android:name=".ConnectionFailed"></activity>
+        <activity android:name=".MovieSelectedActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
