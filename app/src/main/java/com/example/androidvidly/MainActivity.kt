@@ -38,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        window.setBackgroundDrawableResource(R.drawable.background)
         val mQueue = Volley.newRequestQueue(this)
         val url = "https://desafio-mobile.nyc3.digitaloceanspaces.com/movies" //API provided
         //val url = "http://10.0.2.2:3000"// Node.js Backend
