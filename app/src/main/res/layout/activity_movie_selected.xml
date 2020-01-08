@@ -7,6 +7,7 @@
     tools:context=".MovieSelectedActivity"
     android:background="@drawable/cinema">
 
+
     <TextView
         android:id="@+id/movieTitle"
         android:layout_width="183dp"
@@ -74,5 +75,57 @@
         android:text="TextView"
         android:textColor="#FFFFFF"
         android:textSize="34sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/score"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        android:weightSum="7">
+
+        <TextView
+            android:id="@+id/suggestions"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2"
+            android:textColor="#FFFFFF"
+            android:textSize="30sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="5"
+            android:orientation="horizontal"
+            android:weightSum="6">
+
+            <ImageView
+                android:id="@+id/suggestedImage1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:layout_marginBottom="8dp"
+                android:onClick="showMore"/>
+
+            <ImageView
+                android:id="@+id/suggestedImage2"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:layout_marginBottom="8dp"
+                android:onClick="showMore"/>
+
+            <ImageView
+                android:id="@+id/suggestedImage3"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:layout_marginBottom="8dp"
+                android:onClick="showMore"/>
+
+        </LinearLayout>
+
+
+    </LinearLayout>
 
 </RelativeLayout>

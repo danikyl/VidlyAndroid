@@ -32,43 +32,52 @@ const val MOVIE_OBJECT_TITLE = "tokenlab.com.MOVIE_OBJECT_TITLE"
 const val MOVIE_OBJECT_POSTER_URL = "tokenlab.com.MOVIE_OBJECT_POSTER_URL"
 const val MOVIE_OBJECT_RELEASE_DATE = "tokenlab.com.MOVIE_OBJECT_RELEASE_DATE"
 const val MOVIE_OBJECT_GENRES = "tokenlab.com.MOVIE_OBJECT_GENRES"
+val movieObjectsList = arrayListOf<Movie>()//Creating array of movieObjects
+
 
 class MainActivity : AppCompatActivity() {
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val gson = Gson()
         window.setBackgroundDrawableResource(R.drawable.background)
+        val gallery = findViewById<LinearLayout>(R.id.gallery)//getting linear layout to inflate
+        val inflater = LayoutInflater.from(this)//setting inflater
+        var mAppName = findViewById<TextView>(R.id.appName)
+        mAppName.text="Vidly"//Setting the app name to first screen
+        //Creating http request
         val mQueue = Volley.newRequestQueue(this)
         val url = "https://desafio-mobile.nyc3.digitaloceanspaces.com/movies" //API provided
         //val url = "http://10.0.2.2:3000"// Node.js Backend
-        val gallery = findViewById<LinearLayout>(R.id.gallery)
-        val inflater = LayoutInflater.from(this)
-        var mAppName = findViewById<TextView>(R.id.appName)
-        mAppName.text="Vidly"
-        val gson = Gson()
+        //Creating dialog box to notify user that data is being downloaded
         var progDailog = ProgressDialog.show( this,"Process ", "Loading Data...",true,true);
         var request = StringRequest(Request.Method.GET, url, Response.Listener { response ->
             var moviesJSONArray = JSONArray(response)
+            //Loop below gets the response in Json format and converts to objects of type "Movie"
             for (i in 0 until moviesJSONArray.length()) {
                 var e : JSONObject = moviesJSONArray.getJSONObject(i)
                 //Initializing the object
                 val arrayStringType = object : TypeToken<ArrayList<String>>() {}.type
                 var genreListAux:ArrayList<String> = gson.fromJson(e.getString("genres"), arrayStringType)
                 var movieObject: Movie = Movie(e.getString("id").toInt(), e.getString("vote_average"), e.getString("title"), e.getString("poster_url"), genreListAux, e.getString("release_date"))
-                if (i==0) {
+                //Finisehd creating the object
+                movieObjectsList.add(movieObject)//Inserting the movie object in array of objects
+                if (i==0) {//In case of first image, no need to inflate. Simple adding the image to imageView and setting the tag of image view to carry object Movie related to the view
                     var mImageView = findViewById<ImageView>(R.id.imageDisplay)
                     mImageView.setTag(movieObject)
                     mImageView.setPadding(0, 0, 0, 0);
                     loadImageFromUrl(movieObject.poster_url, mImageView)
                 }
-                else if (i==1) {
+                else if (i==1) {//In case of second image, follow the same approach as first Image, but use imageDisplay2 instead.
                     var mImageView = findViewById<ImageView>(R.id.imageDisplay2)
                     mImageView.setTag(movieObject)
                     mImageView.setPadding(0, 0, 0, 0);
                     loadImageFromUrl(movieObject.poster_url, mImageView)
                 }
                 else{
+                    //Case where we do need to inflate and add image to left imageView
                     if(i.rem(2)==0) {
                         var view = inflater.inflate(R.layout.activity_main, gallery, false)
                         var mImageView = view.findViewById<ImageView>(R.id.imageDisplay)
@@ -79,6 +88,7 @@ class MainActivity : AppCompatActivity() {
                         loadImageFromUrl(movieObject.poster_url, mImageView)
                         gallery.addView(view)
                     }
+                    //Case where we do need to inflate and add image to right imageView
                     else {
                         var view = gallery.getChildAt(gallery.childCount-1)
                         var mImageView = view.findViewById<ImageView>(R.id.imageDisplay2)
@@ -91,7 +101,7 @@ class MainActivity : AppCompatActivity() {
             }
             progDailog.dismiss()
 
-        }, Response.ErrorListener { error ->
+        }, Response.ErrorListener { error ->// When response failed, show the user another screen with option to retry.
             error.printStackTrace()
             val errorToast = Toast.makeText(this, "Connection failed! Please try again", Toast.LENGTH_SHORT)
             errorToast.show()
@@ -99,14 +109,31 @@ class MainActivity : AppCompatActivity() {
             connectionFailed()
         })
         mQueue.add(request)
+        //Finished creating http request
 
     }
 
+    //Function to convert URL to image
+    fun loadImageFromUrl(url: String, mImageView: ImageView) {
+        try {
+            Picasso.with(this).load(url).placeholder(R.mipmap.ic_launcher)
+                .error(R.mipmap.ic_launcher)
+                .into(
+                    mImageView, null
+                )
+        }
+        catch(e : Exception) {
+            val errorToast = android.widget.Toast.makeText(this, "Invalid URL!", android.widget.Toast.LENGTH_SHORT)
+            errorToast.show()
+        }
+    }
+
+    //Function called onClick() method for imageViews of first screen
     fun showMore(view: View) {
         val intent = Intent(this, MovieSelectedActivity::class.java).apply {
             var movieObj : Movie = view.getTag() as Movie
             putExtra(MOVIE_OBJECT_ID, movieObj.id)
-            putExtra(MOVIE_OBJECT_GENRES, movieObj.genres)
+            putExtra(MOVIE_OBJECT_GENRES, movieObj.genres.toString())
             putExtra(MOVIE_OBJECT_POSTER_URL, movieObj.poster_url)
             putExtra(MOVIE_OBJECT_RELEASE_DATE, movieObj.release_date)
             putExtra(MOVIE_OBJECT_TITLE, movieObj.title)
@@ -114,13 +141,8 @@ class MainActivity : AppCompatActivity() {
         }
         startActivity(intent)
     }
-    fun loadImageFromUrl(url: String, mImageView: ImageView) {
-        Picasso.with(this).load(url).placeholder(R.mipmap.ic_launcher)
-            .error(R.mipmap.ic_launcher)
-            .into(
-                mImageView, null
-            )
-    }
+
+    //Function to start another activity (show new screen) when connection failed.
     fun connectionFailed() {
         val intent = Intent(this, ConnectionFailed::class.java)
         startActivity(intent)
