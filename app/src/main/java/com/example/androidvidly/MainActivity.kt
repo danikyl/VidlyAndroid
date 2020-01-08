@@ -23,7 +23,11 @@ import android.widget.Toast
 import androidx.core.app.ComponentActivity.ExtraData
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-
+import android.os.Environment
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.PrintWriter
 
 
 const val MOVIE_OBJECT_ID = "tokenlab.com.MOVIE_OBJECT_ID"
@@ -38,13 +42,12 @@ val movieObjectsList = arrayListOf<Movie>()//Creating array of movieObjects
 class MainActivity : AppCompatActivity() {
 
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val gson = Gson()
         window.setBackgroundDrawableResource(R.drawable.background)
-        val gallery = findViewById<LinearLayout>(R.id.gallery)//getting linear layout to inflate
-        val inflater = LayoutInflater.from(this)//setting inflater
         var mAppName = findViewById<TextView>(R.id.appName)
         mAppName.text="Vidly"//Setting the app name to first screen
         //Creating http request
@@ -54,59 +57,19 @@ class MainActivity : AppCompatActivity() {
         //Creating dialog box to notify user that data is being downloaded
         var progDailog = ProgressDialog.show( this,"Process ", "Loading Data...",true,true);
         var request = StringRequest(Request.Method.GET, url, Response.Listener { response ->
-            var moviesJSONArray = JSONArray(response)
-            //Loop below gets the response in Json format and converts to objects of type "Movie"
-            for (i in 0 until moviesJSONArray.length()) {
-                var e : JSONObject = moviesJSONArray.getJSONObject(i)
-                //Initializing the object
-                val arrayStringType = object : TypeToken<ArrayList<String>>() {}.type
-                var genreListAux:ArrayList<String> = gson.fromJson(e.getString("genres"), arrayStringType)
-                var movieObject: Movie = Movie(e.getString("id").toInt(), e.getString("vote_average"), e.getString("title"), e.getString("poster_url"), genreListAux, e.getString("release_date"))
-                //Finisehd creating the object
-                movieObjectsList.add(movieObject)//Inserting the movie object in array of objects
-                if (i==0) {//In case of first image, no need to inflate. Simple adding the image to imageView and setting the tag of image view to carry object Movie related to the view
-                    var mImageView = findViewById<ImageView>(R.id.imageDisplay)
-                    mImageView.setTag(movieObject)
-                    mImageView.setPadding(0, 0, 0, 0);
-                    loadImageFromUrl(movieObject.poster_url, mImageView)
-                }
-                else if (i==1) {//In case of second image, follow the same approach as first Image, but use imageDisplay2 instead.
-                    var mImageView = findViewById<ImageView>(R.id.imageDisplay2)
-                    mImageView.setTag(movieObject)
-                    mImageView.setPadding(0, 0, 0, 0);
-                    loadImageFromUrl(movieObject.poster_url, mImageView)
-                }
-                else{
-                    //Case where we do need to inflate and add image to left imageView
-                    if(i.rem(2)==0) {
-                        var view = inflater.inflate(R.layout.activity_main, gallery, false)
-                        var mImageView = view.findViewById<ImageView>(R.id.imageDisplay)
-                        mImageView.setTag(movieObject)
-                        var height = gallery.height
-                        view.minimumHeight=height
-                        mImageView.setPadding(0, 0, 0, 0);
-                        loadImageFromUrl(movieObject.poster_url, mImageView)
-                        gallery.addView(view)
-                    }
-                    //Case where we do need to inflate and add image to right imageView
-                    else {
-                        var view = gallery.getChildAt(gallery.childCount-1)
-                        var mImageView = view.findViewById<ImageView>(R.id.imageDisplay2)
-                        mImageView.setTag(movieObject)
-                        mImageView.setPadding(0, 0, 0, 0);
-                        loadImageFromUrl(movieObject.poster_url, mImageView)
-                    }
-                }
-
-            }
+            writeCache(response) //writes the response to cache
+            processData(response)
             progDailog.dismiss()
 
         }, Response.ErrorListener { error ->// When response failed, show the user another screen with option to retry.
-            error.printStackTrace()
-            val errorToast = Toast.makeText(this, "Connection failed! Please try again", Toast.LENGTH_SHORT)
-            errorToast.show()
             progDailog.dismiss()
-            connectionFailed()
+            if(!getCache()) {
+                error.printStackTrace()
+                val errorToast =
+                    Toast.makeText(this, "Connection failed! Please try again", Toast.LENGTH_SHORT)
+                errorToast.show()
+                connectionFailed()
+            }
         })
         mQueue.add(request)
         //Finished creating http request
@@ -146,5 +109,139 @@ class MainActivity : AppCompatActivity() {
     fun connectionFailed() {
         val intent = Intent(this, ConnectionFailed::class.java)
         startActivity(intent)
+    }
+    fun writeCache(response : String) : Boolean{
+        val m_cacheLocation = File(getExternalCacheDir(), "/requestCache")
+        var success = true
+        if (!m_cacheLocation.exists()) {
+            success = m_cacheLocation.mkdirs()
+        }
+        if (success) {
+            val requestCacheFile = File(m_cacheLocation,"requestCache.txt")
+
+            if (!requestCacheFile.exists()) {
+                success = requestCacheFile.createNewFile()
+            }
+            if (success) {
+                // directory exists or already created
+                try {
+                    // response is the data written to file
+                    FileOutputStream(requestCacheFile).use {
+                        PrintWriter(requestCacheFile).use { out -> out.println(response)
+                        }
+                    }
+                }
+                catch (e : Exception) {
+                    Log.d("WRITECACHEFAILED","Failed to write to cache!" + e)
+                    return false
+                }
+
+            }
+            else {
+                return false
+            }
+        }
+        return true
+    }
+    fun getCache() : Boolean{
+        var inputAsString=""
+        val cacheToast =
+            Toast.makeText(this, "Offline! Getting data from cache", Toast.LENGTH_SHORT)
+        cacheToast.show()
+        var progDailog = ProgressDialog.show( this,"Process ", "Loading cache...",true,true);
+        val m_cacheLocation = File(getExternalCacheDir(), "/requestCache")
+        var success = true
+        if (!m_cacheLocation.exists()) {
+            Log.d("READCACHEFAILE", "Cache location doesn't exist.")
+            success=false
+        }
+        if (success) {
+            val requestCacheFile = File(m_cacheLocation,"requestCache.txt")
+
+            if (!requestCacheFile.exists()) {
+                Log.d("READCACHEFAILE", "Cache FILE doesn't exist.")
+                success=false
+            }
+            if (success) {
+                try {
+                    inputAsString = FileInputStream(requestCacheFile).bufferedReader().use { it.readText() }
+
+                }
+                catch (e : Exception) {
+                    Log.d("READCACHEFAILED","Failed to read cache!" + e)
+                    success = false
+                }
+
+            }
+            else {
+                success = false
+            }
+        }
+        if (inputAsString.length > 0 && success) {
+            processData(inputAsString)
+        }
+        else {
+            success=false
+        }
+        progDailog.dismiss()
+        if (!success) return false
+        return true
+    }
+
+    fun processData(inputAsString: String) {
+        val gson = Gson()
+        val gallery = findViewById<LinearLayout>(R.id.gallery)//getting linear layout to inflate
+        val inflater = LayoutInflater.from(this)//setting inflater
+        var moviesJSONArray = JSONArray(inputAsString)
+        //Loop below gets the response in Json format and converts to objects of type "Movie"
+        for (i in 0 until moviesJSONArray.length()) {
+            var e: JSONObject = moviesJSONArray.getJSONObject(i)
+            //Initializing the object
+            val arrayStringType = object : TypeToken<ArrayList<String>>() {}.type
+            var genreListAux: ArrayList<String> =
+                gson.fromJson(e.getString("genres"), arrayStringType)
+            var movieObject: Movie = Movie(
+                e.getString("id").toInt(),
+                e.getString("vote_average"),
+                e.getString("title"),
+                e.getString("poster_url"),
+                genreListAux,
+                e.getString("release_date")
+            )
+            //Finisehd creating the object
+            movieObjectsList.add(movieObject)//Inserting the movie object in array of objects
+            if (i == 0) {//In case of first image, no need to inflate. Simple adding the image to imageView and setting the tag of image view to carry object Movie related to the view
+                var mImageView = findViewById<ImageView>(R.id.imageDisplay)
+                mImageView.setTag(movieObject)
+                mImageView.setPadding(0, 0, 0, 0);
+                loadImageFromUrl(movieObject.poster_url, mImageView)
+            } else if (i == 1) {//In case of second image, follow the same approach as first Image, but use imageDisplay2 instead.
+                var mImageView = findViewById<ImageView>(R.id.imageDisplay2)
+                mImageView.setTag(movieObject)
+                mImageView.setPadding(0, 0, 0, 0);
+                loadImageFromUrl(movieObject.poster_url, mImageView)
+            } else {
+                //Case where we do need to inflate and add image to left imageView
+                if (i.rem(2) == 0) {
+                    var view = inflater.inflate(R.layout.activity_main, gallery, false)
+                    var mImageView = view.findViewById<ImageView>(R.id.imageDisplay)
+                    mImageView.setTag(movieObject)
+                    var height = gallery.height
+                    view.minimumHeight = height
+                    mImageView.setPadding(0, 0, 0, 0);
+                    loadImageFromUrl(movieObject.poster_url, mImageView)
+                    gallery.addView(view)
+                }
+                //Case where we do need to inflate and add image to right imageView
+                else {
+                    var view = gallery.getChildAt(gallery.childCount - 1)
+                    var mImageView = view.findViewById<ImageView>(R.id.imageDisplay2)
+                    mImageView.setTag(movieObject)
+                    mImageView.setPadding(0, 0, 0, 0);
+                    loadImageFromUrl(movieObject.poster_url, mImageView)
+                }
+            }
+
+        }
     }
 }
