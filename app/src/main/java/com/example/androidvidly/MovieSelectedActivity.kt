@@ -5,6 +5,7 @@ import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -37,6 +38,8 @@ class MovieSelectedActivity : AppCompatActivity() {
         val related = findViewById<TextView>(R.id.suggestions).apply {
             text="Movies you might like:"
         }
+        val homeButton = findViewById<Button>(R.id.homeButton)
+        homeButton.text = "Home"
         val mMovieIcon = findViewById<ImageView>(R.id.movieIcon)
         //instantiating an object from Main activity to use the function loadImageFromUrl()
         val mainActivityObject:MainActivity=MainActivity()
@@ -78,6 +81,7 @@ class MovieSelectedActivity : AppCompatActivity() {
             }
             i++
         }
+        //Finished getting the suggested movies.
 
     }
     fun showMore(view: View) {
@@ -90,6 +94,11 @@ class MovieSelectedActivity : AppCompatActivity() {
             putExtra(MOVIE_OBJECT_TITLE, movieObj.title)
             putExtra(MOVIE_OBJECT_VOTES, movieObj.vote_average)
         }
+        startActivity(intent)
+    }
+    //Function to be used by onCLick method for 'Home' button, send the user back to first screen.
+    fun goHome(view: View) {
+        val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
     }
 }

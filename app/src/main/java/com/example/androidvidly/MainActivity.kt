@@ -7,9 +7,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
 import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
@@ -19,11 +16,11 @@ import com.google.gson.reflect.TypeToken
 import com.squareup.picasso.Picasso
 import org.json.JSONArray
 import org.json.JSONObject
-import android.widget.Toast
 import androidx.core.app.ComponentActivity.ExtraData
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import android.os.Environment
+import android.widget.*
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -61,7 +58,7 @@ class MainActivity : AppCompatActivity() {
             processData(response)
             progDailog.dismiss()
 
-        }, Response.ErrorListener { error ->// When response failed, show the user another screen with option to retry.
+        }, Response.ErrorListener { error ->// When response failed, first try to get data from cache, if failed then show the user another screen with option to retry to connect.
             progDailog.dismiss()
             if(!getCache()) {
                 error.printStackTrace()
@@ -105,11 +102,12 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    //Function to start another activity (show new screen) when connection failed.
+    //Function to start another activity (show new screen) when connection failed and cache does not exist.
     fun connectionFailed() {
         val intent = Intent(this, ConnectionFailed::class.java)
         startActivity(intent)
     }
+    //Writes the successful result from API and store in cache for future offline use
     fun writeCache(response : String) : Boolean{
         val m_cacheLocation = File(getExternalCacheDir(), "/requestCache")
         var success = true
@@ -149,6 +147,7 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Offline! Getting data from cache", Toast.LENGTH_SHORT)
         cacheToast.show()
         var progDailog = ProgressDialog.show( this,"Process ", "Loading cache...",true,true);
+        //Starts getting string request from CACHE
         val m_cacheLocation = File(getExternalCacheDir(), "/requestCache")
         var success = true
         if (!m_cacheLocation.exists()) {
@@ -177,6 +176,8 @@ class MainActivity : AppCompatActivity() {
                 success = false
             }
         }
+        //Stops getting string request from CACHE
+        //Process the string request to generate views
         if (inputAsString.length > 0 && success) {
             processData(inputAsString)
         }
@@ -187,7 +188,7 @@ class MainActivity : AppCompatActivity() {
         if (!success) return false
         return true
     }
-
+    //Function to process the result from API request or from CACHE
     fun processData(inputAsString: String) {
         val gson = Gson()
         val gallery = findViewById<LinearLayout>(R.id.gallery)//getting linear layout to inflate
