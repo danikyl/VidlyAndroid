@@ -27,12 +27,12 @@ import java.io.FileOutputStream
 import java.io.PrintWriter
 
 
-const val MOVIE_OBJECT_ID = "tokenlab.com.MOVIE_OBJECT_ID"
-const val MOVIE_OBJECT_VOTES = "tokenlab.com.MOVIE_OBJECT_VOTES"
-const val MOVIE_OBJECT_TITLE = "tokenlab.com.MOVIE_OBJECT_TITLE"
-const val MOVIE_OBJECT_POSTER_URL = "tokenlab.com.MOVIE_OBJECT_POSTER_URL"
-const val MOVIE_OBJECT_RELEASE_DATE = "tokenlab.com.MOVIE_OBJECT_RELEASE_DATE"
-const val MOVIE_OBJECT_GENRES = "tokenlab.com.MOVIE_OBJECT_GENRES"
+const val MOVIE_OBJECT_ID = "androidvidly.MOVIE_OBJECT_ID"
+const val MOVIE_OBJECT_VOTES = "androidvidly.MOVIE_OBJECT_VOTES"
+const val MOVIE_OBJECT_TITLE = "androidvidly.MOVIE_OBJECT_TITLE"
+const val MOVIE_OBJECT_POSTER_URL = "androidvidly.MOVIE_OBJECT_POSTER_URL"
+const val MOVIE_OBJECT_RELEASE_DATE = "androidvidly.MOVIE_OBJECT_RELEASE_DATE"
+const val MOVIE_OBJECT_GENRES = "androidvidly.MOVIE_OBJECT_GENRES"
 val movieObjectsList = arrayListOf<Movie>()//Creating array of movieObjects
 
 
